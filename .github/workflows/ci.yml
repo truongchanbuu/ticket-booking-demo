@@ -1,0 +1,33 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - "event-service/**"
+      - "ticket-service/**"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+      - name: Build and Push Event Service
+        if: contains(github.event.head_commit.message, 'event-service')
+        run: |
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:latest ./event-service
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:latest
+
+      - name: Build and Push Ticket Service
+        if: contains(github.event.head_commit.message, 'ticket-service')
+        run: |
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/ticket-service:latest ./ticket-service
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/ticket-service:latest
