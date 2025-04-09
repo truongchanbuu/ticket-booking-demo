@@ -1,42 +1,20 @@
-import OrderController from "@/controllers/order.controller";
-import { OrderStatus } from "@/enums/order_status";
-import Order from "@/models/order.model";
+import request from "supertest";
+import { Express } from "express";
 import OrderService from "@/services/order.service";
-import { Request, Response } from "express";
+import Order from "@/models/order.model";
+import { OrderStatus } from "@/enums/order_status";
+import { createTestApp } from "../../set_up_test_app";
 
-describe("OrderController", () => {
+describe("OrderController - createOrder (supertest)", () => {
   let mockOrderService: jest.Mocked<OrderService>;
-  let controller: OrderController;
-  let req: Partial<Request>;
-  let res: Partial<Response>;
-  let jsonMock: jest.Mock;
-  let statusMock: jest.Mock;
+  let app: Express;
 
   beforeEach(() => {
-    // Mock orderService
     mockOrderService = {
       bookTicket: jest.fn(),
     } as unknown as jest.Mocked<OrderService>;
 
-    controller = new OrderController(mockOrderService);
-
-    // Mock req & res
-    jsonMock = jest.fn();
-    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
-
-    req = {
-      body: {
-        userID: "u1",
-        eventID: "e1",
-        ticketID: "t1",
-        quantity: 2,
-      },
-    };
-
-    res = {
-      status: statusMock,
-      json: jsonMock,
-    };
+    app = createTestApp(mockOrderService);
   });
 
   it("should return 201 and created order", async () => {
@@ -53,42 +31,92 @@ describe("OrderController", () => {
 
     mockOrderService.bookTicket.mockResolvedValue(fakeOrder);
 
-    await controller.createOrder(req as Request, res as Response);
+    const res = await request(app).post("/orders").send({
+      userID: "u1",
+      eventID: "e1",
+      ticketID: "t1",
+      quantity: 2,
+    });
 
-    expect(statusMock).toHaveBeenCalledWith(201);
-    expect(jsonMock).toHaveBeenCalledWith({
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({
       code: 0,
       message: "success",
-      data: fakeOrder,
+      data: expect.objectContaining({
+        orderID: "o1",
+      }),
     });
-    expect(mockOrderService.bookTicket).toHaveBeenCalledWith(
-      "u1",
-      "e1",
-      "t1",
-      2
-    );
   });
 
   it("should return 400 if missing fields", async () => {
-    req.body = { userID: "u1" }; // missing fields
+    const res = await request(app).post("/orders").send({
+      userID: "u1",
+    });
 
-    await controller.createOrder(req as Request, res as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(400);
-    expect(jsonMock).toHaveBeenCalledWith({
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
       code: 1,
       message: "missing required fields",
       data: null,
     });
   });
 
+  it("should return 400 if quantity is not a number", async () => {
+    const invalidOrderData = {
+      userID: "user123",
+      eventID: "event123",
+      ticketID: "ticket123",
+      quantity: "not-a-number",
+    };
+
+    await request(app)
+      .post("/orders")
+      .send(invalidOrderData)
+      .expect(400)
+      .expect((res) => {
+        expect(res.body).toEqual({
+          code: 1,
+          message: "Invalid data",
+          data: null,
+        });
+        expect(mockOrderService.bookTicket).not.toHaveBeenCalled();
+      });
+  });
+
+  it("should return 400 if any string field is empty", async () => {
+    const invalidOrderData = {
+      userID: "",
+      eventID: "event123",
+      ticketID: "ticket123",
+      quantity: 2,
+    };
+
+    await request(app)
+      .post("/orders")
+      .send(invalidOrderData)
+      .expect(400)
+      .expect((res) => {
+        expect(res.body).toEqual({
+          code: 1,
+          message: "missing required fields",
+          data: null,
+        });
+        expect(mockOrderService.bookTicket).not.toHaveBeenCalled();
+      });
+  });
+
   it("should return 500 if service throws", async () => {
     mockOrderService.bookTicket.mockRejectedValue(new Error("DB error"));
 
-    await controller.createOrder(req as Request, res as Response);
+    const res = await request(app).post("/orders").send({
+      userID: "u1",
+      eventID: "e1",
+      ticketID: "t1",
+      quantity: 2,
+    });
 
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({
       code: 1,
       message: "failed to create order",
       data: null,

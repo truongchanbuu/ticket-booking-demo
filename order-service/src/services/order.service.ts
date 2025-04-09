@@ -2,10 +2,7 @@ import Order from "@/models/order.model";
 import OrderRepository from "../repositories/order.repository";
 
 export default class OrderService {
-  constructor(
-    private orderRepo: OrderRepository,
-    private kafkaProducer: any
-  ) {}
+  constructor(private orderRepo: OrderRepository) {}
 
   async bookTicket(
     userId: string,

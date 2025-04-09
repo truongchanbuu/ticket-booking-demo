@@ -2,6 +2,7 @@ import OrderConsumer from "@/consumers/order.consumer";
 import { OrderStatus } from "@/enums/order_status";
 import Order from "@/models/order.model";
 import OrderRepository from "@/repositories/order.repository";
+import OrderService from "@/services/order.service";
 
 describe("OrderConsumer", () => {
   it("confirms order when ticket reserved", async () => {
@@ -25,7 +26,9 @@ describe("OrderConsumer", () => {
       }),
     };
 
-    const consumer = new OrderConsumer(mockRepo);
+    const orderService = new OrderService(mockRepo);
+
+    const consumer = new OrderConsumer(orderService);
 
     const message = {
       value: JSON.stringify({ orderID: "o1" }),
@@ -61,7 +64,9 @@ describe("OrderConsumer", () => {
       }),
     };
 
-    const consumer = new OrderConsumer(mockRepo);
+    const orderService = new OrderService(mockRepo);
+
+    const consumer = new OrderConsumer(orderService);
 
     const message = {
       value: JSON.stringify({ orderID: "order456" }),

@@ -1,16 +1,16 @@
-import OrderRepository from "@/repositories/order.repository";
+import OrderService from "@/services/order.service";
 
 // order.consumer.ts
 type KafkaMessage = { value: string };
 
 export default class OrderConsumer {
-  constructor(private orderRepo: OrderRepository) {}
+  constructor(private orderService: OrderService) {}
 
-  async handleTicketReserved(message: KafkaMessage) {
+  public async handleTicketReserved(message: KafkaMessage) {
     throw new Error("Unimplemented method");
   }
 
-  async handleTicketOutOfStock(message: KafkaMessage) {
+  public async handleTicketOutOfStock(message: KafkaMessage) {
     throw new Error("Unimplemented method");
   }
 }

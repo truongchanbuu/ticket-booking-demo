@@ -26,7 +26,7 @@ describe("OrderService - bookTicket()", () => {
       send: jest.fn().mockResolvedValue(undefined),
     };
 
-    const service = new OrderService(mockRepo, mockKafkaProducer);
+    const service = new OrderService(mockRepo);
 
     const result = await service.bookTicket("u1", "e1", "t1", 2);
 

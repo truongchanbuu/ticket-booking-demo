@@ -6,7 +6,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node --watch dist/server.js",
-    "test": "jest --watchAll",
+    "test": "jest",
     "lint": "eslint . --ext .ts",
     "format": "prettier --check .",
     "check": "npm run lint && npm run test"

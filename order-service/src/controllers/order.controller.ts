@@ -15,7 +15,14 @@ export default class OrderController {
         return;
       }
 
-      if (Number.isNaN(quantity)) {
+      if (
+        Number.isNaN(quantity) ||
+        quantity <= 0 ||
+        !Number.isInteger(Number(quantity)) ||
+        userID == "" ||
+        ticketID == "" ||
+        eventID == ""
+      ) {
         res.status(400).json({ code: 1, message: "Invalid data", data: null });
         return;
       }
