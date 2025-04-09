@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { getExample } from "../controllers/ticket.controller";
+import { ticketController } from "../../container";
 
 const ticketRouter = Router();
 
-ticketRouter.get("/", getExample);
+ticketRouter.get("/", ticketController.createTickets);
 
 export default ticketRouter;

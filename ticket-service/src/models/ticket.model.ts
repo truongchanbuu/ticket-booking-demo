@@ -8,7 +8,7 @@ export class Ticket {
     public ticketBasePrice: number,
     public ticketDiscount: number,
     public readonly createdAt: Date = new Date(),
-    public updatedAt: Date
+    public updatedAt?: Date
   ) {}
 
   /**
