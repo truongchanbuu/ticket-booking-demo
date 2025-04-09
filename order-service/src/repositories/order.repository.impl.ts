@@ -1,26 +1,25 @@
-import { OrderRepository } from "@/repositories/order.repository";
+import { OrderStatus } from "@/enums/order_status";
+import Order from "@/models/order.model";
+import OrderRepository from "@/repositories/order.repository";
 
 export class OrderRepositoryImpl implements OrderRepository {
-  async createOrder(userID: string, eventID: string): Promise<Order> {
-    // Giả sử đây là call đến Firestore hoặc DB
-    return {
-      ticketID: "t1",
-      orderID: "o1",
-      userID,
-      eventID,
-      quantity: 2,
-      totalPrice: 100,
-      createdAt: new Date(),
-      status: "confirmed",
-    };
+  async createOrder(
+    userID: string,
+    eventID: string,
+    ticketID: string,
+    quantity: number
+  ): Promise<Order> {
+    throw new Error("Unimplemented method");
   }
 
-  async getRemainingTickets(eventID: string): Promise<number> {
-    // call DB
-    return 10;
+  async updateStatus(
+    orderID: string,
+    status: OrderStatus
+  ): Promise<OrderStatus> {
+    throw new Error("Unimplemented method");
   }
 
-  async decreaseTickets(eventID: string, quantity: number): Promise<void> {
-    // update ticket count
+  async getOrderByID(orderID: string): Promise<Order> {
+    throw new Error("Unimplemented method");
   }
 }

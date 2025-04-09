@@ -1,15 +1,18 @@
-import { OrderRepository } from "../repositories/order.repository";
+import Order from "@/models/order.model";
+import OrderRepository from "../repositories/order.repository";
 
-export class OrderService {
-  constructor(private repo: OrderRepository) {}
+export default class OrderService {
+  constructor(
+    private orderRepo: OrderRepository,
+    private kafkaProducer: any
+  ) {}
 
-  async bookTicket(userId: string, eventId: string) {
-    const remaining = await this.repo.getRemainingTickets(eventId);
-    if (remaining <= 0) {
-      throw new Error("Sold out");
-    }
-
-    await this.repo.decreaseTickets(eventId, 1);
-    return this.repo.createOrder(userId, eventId);
+  async bookTicket(
+    userId: string,
+    eventId: string,
+    ticketID: string,
+    quantity: number
+  ): Promise<Order> {
+    throw new Error("Unimplemented method");
   }
 }

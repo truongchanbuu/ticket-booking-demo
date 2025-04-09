@@ -1,28 +1,38 @@
-// tests/order.service.test.ts
-
-import { OrderRepository } from "@/repositories/order.repository";
-import { OrderService } from "@/services/order.service";
+import { OrderStatus } from "@/enums/order_status";
+import Order from "@/models/order.model";
+import OrderRepository from "@/repositories/order.repository";
+import OrderService from "@/services/order.service";
 
 describe("OrderService - bookTicket()", () => {
-  it("should create order and decrease ticket if available", async () => {
+  it("should create order and send event", async () => {
+    const kafkaTopic = "order_created";
+    const mockOrder: Order = {
+      ticketID: "t1",
+      orderID: "o1",
+      quantity: 2,
+      userID: "u1",
+      eventID: "e1",
+      totalPrice: 100,
+      createdAt: new Date(),
+      status: OrderStatus.PENDING,
+    };
     const mockRepo: OrderRepository = {
-      getRemainingTickets: jest.fn().mockResolvedValue(5),
-      decreaseTickets: jest.fn().mockResolvedValue(undefined),
-      createOrder: jest.fn().mockResolvedValue({
-        id: "123",
-        userId: "u1",
-        eventId: "e1",
-        status: "confirmed",
-      }),
+      createOrder: jest.fn().mockResolvedValue(mockOrder),
+      updateStatus: jest.fn(),
+      getOrderByID: jest.fn(),
     };
 
-    const service = new OrderService(mockRepo);
+    const mockKafkaProducer = {
+      send: jest.fn().mockResolvedValue(undefined),
+    };
 
-    const result = await service.bookTicket("u1", "e1");
+    const service = new OrderService(mockRepo, mockKafkaProducer);
 
-    expect(result.status).toBe("confirmed");
-    expect(mockRepo.getRemainingTickets).toHaveBeenCalledWith("e1");
-    expect(mockRepo.decreaseTickets).toHaveBeenCalledWith("e1", 1);
-    expect(mockRepo.createOrder).toHaveBeenCalledWith("u1", "e1");
+    const result = await service.bookTicket("u1", "e1", "t1", 2);
+
+    expect(result).toBe(mockOrder);
+    expect(mockKafkaProducer.send).toHaveBeenCalledWith(kafkaTopic, mockOrder);
+
+    expect(mockRepo.createOrder).toHaveBeenCalledWith("u1", "e1", "t1", 2);
   });
 });
