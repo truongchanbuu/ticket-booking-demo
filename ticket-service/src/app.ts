@@ -1,8 +1,11 @@
 import express from "express";
-import ticketRouter from "./routes/ticket.routes";
+import { ticketRouter } from "./container"; // Production router
 
-const app = express();
-app.use(express.json());
-app.use("/tickets", ticketRouter);
+export function createApp() {
+  const app = express();
 
-export default app;
+  app.use(express.json());
+  app.use("/tickets", ticketRouter);
+
+  return app;
+}

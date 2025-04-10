@@ -20,7 +20,7 @@ describe("TicketConsumer", () => {
           basePrice: 100,
           count: 3,
           ticketDiscount: 5,
-        })
+        }),
       ),
     };
 
@@ -33,7 +33,7 @@ describe("TicketConsumer", () => {
       "standard",
       100,
       3,
-      5
+      5,
     );
   });
 });

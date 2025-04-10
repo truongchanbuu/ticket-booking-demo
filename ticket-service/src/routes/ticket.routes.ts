@@ -1,8 +1,18 @@
 import { Router } from "express";
-import { ticketController } from "../../container";
+import { validateDto } from "@/validators/validate";
+import { CreateTicketDto } from "@/dtos/create_ticket.dto";
+import { TicketService } from "@/services/ticket.service";
+import TicketController from "@/controllers/ticket.controller";
 
-const ticketRouter = Router();
+export function createTicketRouter(service: TicketService): Router {
+  const router = Router();
+  const controller = new TicketController(service);
 
-ticketRouter.get("/", ticketController.createTickets);
+  router.post(
+    "/",
+    validateDto(CreateTicketDto),
+    controller.createTicket.bind(controller)
+  );
 
-export default ticketRouter;
+  return router;
+}

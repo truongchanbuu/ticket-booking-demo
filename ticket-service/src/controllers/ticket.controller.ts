@@ -7,9 +7,26 @@ export default class TicketController {
   /**
    * @param req contains ticket information and count
    * @param res returns json with code, message and data
-   * @returns a list of tickets with `count` length
+   * @returns a ticket
    */
-  public async createTickets(req: Request, res: Response) {
-    throw new Error("Unimplemented method");
+  public async createTicket(req: Request, res: Response) {
+    try {
+      const ticket = await this.ticketService.createTicket(req.body);
+
+      res.status(201).json({
+        code: 0,
+        message: "success",
+        data: ticket,
+      });
+    } catch (e) {
+      console.log(e);
+      res.status(500).json({
+        code: 1,
+        message: "cannot create ticket",
+        data: null,
+      });
+    }
+
+    return;
   }
 }
