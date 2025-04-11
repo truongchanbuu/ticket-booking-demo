@@ -1,0 +1,22 @@
+# Ignore node_modules vì chúng sẽ được cài lại khi build
+node_modules/
+
+# Ignore log files
+*.log
+
+# Ignore Dockerfile hoặc bất kỳ tệp tin cấu hình nhạy cảm nào khác
+Dockerfile
+.gitignore
+.git/
+.gitlab-ci.yml
+
+# Ignore các tệp tin hoặc thư mục chứa thông tin nhạy cảm
+*.env
+
+# Ignore build artifacts
+/dist/
+build/
+
+# Ignore hệ thống tệp tạm thời của OS
+.DS_Store
+Thumbs.db
