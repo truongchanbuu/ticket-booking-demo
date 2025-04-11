@@ -83,4 +83,6 @@ jobs:
 
       - name: Build and Push Event Service
         run: |
-          docker build -t ghcr.io/${{ secrets.G
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:latest -t ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:${{ env.BRANCH_NAME }} ./event-service
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:latest
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:${{ env.BRANCH_NAME }}
