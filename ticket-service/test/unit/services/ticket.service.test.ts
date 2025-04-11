@@ -2,9 +2,11 @@ import Ticket from "@/models/ticket.model";
 import TicketRepository from "../../../src/repositories/ticket.repository";
 import { TicketService } from "../../../src/services/ticket.service";
 import { CreateTicketDto } from "@/dtos/create_ticket.dto";
+import TicketProducer from "@/kafka/ticket.producer";
 
 describe("TicketService", () => {
   let ticketRepoMock: jest.Mocked<TicketRepository>;
+  let kafkaProducerMock: jest.Mocked<TicketProducer>;
   let ticketService: TicketService;
 
   beforeEach(() => {
@@ -14,7 +16,19 @@ describe("TicketService", () => {
       getTicketByID: jest.fn(),
     } as unknown as jest.Mocked<TicketRepository>;
 
-    ticketService = new TicketService(ticketRepoMock);
+    kafkaProducerMock = {
+      producer: {
+        send: jest.fn(),
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+      },
+      connect: jest.fn(),
+      send: jest.fn(),
+    } as unknown as jest.Mocked<TicketProducer>;
+    ticketService = new TicketService(
+      ticketRepoMock,
+      kafkaProducerMock.producer
+    );
   });
 
   afterEach(() => {

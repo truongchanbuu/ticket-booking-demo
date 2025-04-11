@@ -1,6 +1,6 @@
 // src/mappers/ticket.mapper.ts
-import { CreateTicketDto } from "@/dtos/create_ticket.dto";
-import Ticket from "@/models/ticket.model";
+import { CreateTicketDto } from '@/dtos/create_ticket.dto';
+import Ticket from '@/models/ticket.model';
 
 export class TicketMapper {
   public static fromCreateDto(dto: CreateTicketDto): Ticket {

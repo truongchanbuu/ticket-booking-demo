@@ -1,19 +1,41 @@
 import request from "supertest";
 import { CreateTicketDto } from "@/dtos/create_ticket.dto";
-import { createApp } from "@/app";
+import express from "express";
+import { TicketService } from "@/services/ticket.service";
+import { KafkaTopics } from "@/config/kafka_topics";
+import { createTicketRouter } from "@/routes/ticket.routes";
 
 describe("POST /tickets", () => {
+  const mockRepo = {
+    createTicket: jest.fn().mockImplementation((ticket) => ticket), // fake response
+    findAll: jest.fn(),
+    getTicketByID: jest.fn(),
+  };
+
+  const mockKafkaProducer = {
+    send: jest.fn().mockResolvedValue(undefined),
+    connect: jest.fn().mockResolvedValue(undefined),
+  };
+
   const mockTicketService = {
     createTicket: jest.fn(),
-  } as any;
+  };
 
-  const app = createApp();
+  let app: express.Express;
+
+  beforeEach(async () => {
+    const ticketService = new TicketService(mockRepo, mockKafkaProducer as any);
+
+    app = express();
+    app.use(express.json());
+    app.use("/tickets", createTicketRouter(ticketService));
+  });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it("should return 201 when ticket is created", async () => {
+  it("should return 201 when ticket is created and send kafka message", async () => {
     const createTicketDto: CreateTicketDto = new CreateTicketDto({
       eventID: "e1",
       eventOrganizerID: "eo1",
@@ -26,7 +48,9 @@ describe("POST /tickets", () => {
     });
 
     const res = await request(app).post("/tickets").send(createTicketDto);
+
     expect(res.status).toBe(201);
+
     expect(res.body).toEqual(
       expect.objectContaining({
         code: 0,
@@ -35,11 +59,19 @@ describe("POST /tickets", () => {
           eventID: "e1",
           eventOrganizerID: "eo1",
           ticketName: "Standard",
-          ticketDescription: "Basic", // Sửa lại field name
+          ticketDescription: "Basic",
           ticketType: "standard",
           ticketBasePrice: 100,
           ticketDiscount: 0,
         }),
+      })
+    );
+
+    expect(mockKafkaProducer.send).toHaveBeenCalledTimes(1);
+    expect(mockKafkaProducer.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        topic: KafkaTopics.TICKET_CREATED,
+        messages: expect.any(Array),
       })
     );
   });

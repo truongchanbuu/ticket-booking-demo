@@ -1,11 +1,13 @@
-import express from "express";
-import { ticketRouter } from "./container"; // Production router
+import express from 'express';
+import { createContainer } from './container';
 
-export function createApp() {
+export async function createApp() {
   const app = express();
 
   app.use(express.json());
-  app.use("/tickets", ticketRouter);
+
+  const { routers } = await createContainer();
+  app.use('/tickets', routers.ticketRouter);
 
   return app;
 }
