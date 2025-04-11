@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { TicketService } from '../services/ticket.service';
+import { Request, Response } from "express";
+import { TicketService } from "../services/ticket.service";
 
 export default class TicketController {
   constructor(private ticketService: TicketService) {}
@@ -15,14 +15,14 @@ export default class TicketController {
 
       res.status(201).json({
         code: 0,
-        message: 'success',
+        message: "success",
         data: ticket,
       });
     } catch (e) {
       console.log(e);
       res.status(500).json({
         code: 1,
-        message: 'cannot create ticket',
+        message: "cannot create ticket",
         data: null,
       });
     }
