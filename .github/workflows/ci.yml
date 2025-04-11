@@ -1,33 +1,93 @@
-name: CI/CD
-
+name: CI/CD Pipeline
 on:
   push:
     branches:
       - main
       - staging
     paths:
-      - "event-service/**"
-      - "ticket-service/**"
+      - 'ticket-service/**'
+      - 'event-service/**'
 
 jobs:
-  build-and-deploy:
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      ticket_service: ${{ steps.filter.outputs.ticket_service }}
+      event_service: ${{ steps.filter.outputs.event_service }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
+      - name: Check for file changes
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            ticket_service:
+              - 'ticket-service/**'
+            event_service:
+              - 'event-service/**'
+
+  build-and-deploy-ticket:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.ticket_service == 'true' }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Build and Push Event Service
-        if: contains(github.event.head_commit.message, 'event-service')
-        run: |
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:latest ./event-service
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:latest
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Build and Push Ticket Service
-        if: contains(github.event.head_commit.message, 'ticket-service')
-        run: |
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/ticket-service:latest ./ticket-service
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/ticket-service:latest
+        uses: docker/build-push-action@v4
+        with:
+          context: ./ticket-service
+          push: true
+          tags: |
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/ticket-service:latest
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/ticket-service:${{ env.BRANCH_NAME }}
+
+  build-and-deploy-event:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.event_service == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Build and Push Event Service
+        uses: docker/build-push-action@v4
+        with:
+          context: ./event-service
+          push: true
+          tags: |
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:latest
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/event-booking/event-service:${{ env.BRANCH_NAME }}
