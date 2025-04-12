@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-const KAFKA_PORT_DEFAULT = 9020;
+const KAFKA_PORT_DEFAULT = 9092;
 const KAFKA_PORT = process.env.KAFKA_BROKER_PORT || KAFKA_PORT_DEFAULT;
 const KAFKA_BROKER_DEFAULT = `192.168.174.120:${KAFKA_PORT}`;
 
